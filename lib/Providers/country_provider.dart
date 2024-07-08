@@ -7,13 +7,8 @@ class CountryProvider with ChangeNotifier {
   // The complete list of countries fetched from the GraphQL API.
   List<Country> _countries = [];
 
-  // The filtered list of countries based on the search query.
-  // This list is displayed to the user, while `_countries` serves as the master list
-  // containing all countries fetched from the API.
-  List<Country> _filteredCountries = [];
-
   // Getter for the filtered list of countries.
-  List<Country> get countries => _filteredCountries;
+  List<Country> get countries => _countries;
 
   // Text editing controller for the search bar.
   final TextEditingController _searchController = TextEditingController();
@@ -27,27 +22,23 @@ class CountryProvider with ChangeNotifier {
   }
 
   // Fetches the list of countries from the GraphQL API and updates the state.
-  Future<void> fetchCountries() async {
-    final result = await GraphQLService().fetchCountries();
+  Future<void> fetchCountries({String? filter}) async {
+    final result = await GraphQLService().fetchCountries(filter: filter);
     _countries = (result.data?['countries'] as List)
         .map((country) => Country.fromJson(country))
         .toList();
-    _filteredCountries = _countries;
     notifyListeners();
+  }
+
+  // Filters the list of countries based on the search query.
+  void _filterCountries() {
+    final query = _searchController.text;
+    fetchCountries(filter: query);
   }
 
   // Removes a country from the list and updates the filtered list.
   void removeCountry(Country country) {
     _countries.remove(country);
-    _filterCountries();
-  }
-
-  // Filters the list of countries based on the search query.
-  void _filterCountries() {
-    final query = _searchController.text.toLowerCase();
-    _filteredCountries = _countries.where((country) {
-      return country.name.toLowerCase().contains(query);
-    }).toList();
     notifyListeners();
   }
 

@@ -12,26 +12,27 @@ class GraphQLService {
     link: httpLink,
   );
 
-  // GraphQL query to fetch country data.
+  // GraphQL query to fetch country data with a filter.
   static const String countriesQuery = '''
-    query {
-      countries {
-        name
-        capital
-        currency
-        emoji
-        languages {
+      query GetCountries(\$regexPattern: String) {
+        countries(filter: { name: { regex: \$regexPattern } }) {
           name
+          capital
+          currency
+          emoji
+          languages {
+            name
+          }
         }
       }
-    }
-  ''';
+    ''';
 
   /// Fetches countries from the GraphQL API.
   /// Returns a QueryResult containing the data or throws an exception on error.
-  Future<QueryResult> fetchCountries() async {
+  Future<QueryResult> fetchCountries({String? filter}) async {
     final QueryOptions options = QueryOptions(
       document: gql(countriesQuery),
+      variables: {'regexPattern': filter ?? ''},
       fetchPolicy: FetchPolicy.cacheAndNetwork,
     );
 
